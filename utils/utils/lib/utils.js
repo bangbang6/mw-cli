@@ -1,9 +1,8 @@
 "use strict";
 
-module.exports = {
-  calc,
+const isObject = (o) => {
+  return Object.prototype.toString.call(o) === "[object Object]";
 };
-
-function calc(a, b) {
-  return a + b;
-}
+module.exports = {
+  isObject,
+};

@@ -1,22 +1,9 @@
 0 silly argv {
 0 silly argv   _: [ 'create' ],
 0 silly argv   lernaVersion: '3.22.1',
-0 silly argv   '$0': '../../../../.nvm/versions/node/v18.17.0/lib/node_modules/lerna/cli.js',
-0 silly argv   name: 'util'
+0 silly argv   '$0': 'lerna',
+0 silly argv   name: '@mac-mw-cli-dev/format-path'
 0 silly argv }
 1 notice cli v3.22.1
 2 verbose rootPath /Users/mengwan/project/vue-test/mac-mw-cli-dev/mac-mw-cli-dev
-3 warn ENOREMOTE No git remote found, skipping repository property
-4 error Error: canceled
-4 error     at Interface.<anonymous> (/Users/mengwan/project/vue-test/mac-mw-cli-dev/mac-mw-cli-dev/node_modules/.store/read@1.0.7/node_modules/read/lib/read.js:66:13)
-4 error     at Interface.emit (node:events:514:28)
-4 error     at [_ttyWrite] [as _ttyWrite] (node:internal/readline/interface:1131:18)
-4 error     at ReadStream.onkeypress (node:internal/readline/interface:270:20)
-4 error     at ReadStream.emit (node:events:514:28)
-4 error     at emitKeys (node:internal/readline/utils:357:14)
-4 error     at emitKeys.next (<anonymous>)
-4 error     at ReadStream.onData (node:internal/readline/emitKeypressEvents:64:36)
-4 error     at ReadStream.emit (node:events:514:28)
-4 error     at addChunk (node:internal/streams/readable:324:12)
-4 error     at readableAddChunk (node:internal/streams/readable:297:9)
-4 error     at Readable.push (node:internal/streams/readable:234:10)
+3 error

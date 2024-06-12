@@ -1,7 +1,7 @@
 "use strict";
 
 const index = (projectName, cmdObj) => {
-  console.log(projectName, 11);
+  console.log(projectName, process.env.CLI_TARGET_PATH);
 };
 
 module.exports = index;

@@ -11,28 +11,34 @@ const colors = require("colors/safe");
 const rootCheck = require("root-check");
 const userHome = require("user-home");
 const pathExits = require("path-exists").sync;
-const minimist = require("minimist");
 const dotenv = require("dotenv");
 const { getNpmSemverVersion } = require("@mw-cli-dev/get-npm-info");
 const commander = require("commander");
 const init = require("@mw-cli-dev/init");
 const program = new commander.Command();
+const exec = require("@mw-cli-dev/exec");
 
 let args, config;
 
-function core() {
+async function core() {
   try {
-    checkPkgVersion();
-    checkNodeVersion();
-    checkRoot();
-    checkUserHome();
-    checkEnv();
-    // checkGlobalUpdate();
+    await prepare();
     registerCommand();
   } catch (e) {
     log.error(e);
+    if (program.debug) {
+      console.log(e);
+    }
   }
 }
+const prepare = async () => {
+  checkPkgVersion();
+  checkNodeVersion();
+  checkRoot();
+  checkUserHome();
+  checkEnv();
+  await checkGlobalUpdate();
+};
 /** 检查版本号 */
 const checkPkgVersion = () => {
   log.notice("cli", pkg.version);
@@ -60,37 +66,22 @@ const checkUserHome = () => {
     throw new Error(colors.red("当前登陆用户主目录不存在"));
   }
 };
-/** 检查如参 是否有--debug */
-const checkInputArgs = () => {
-  args = minimist(process.argv.slice(2));
-  checkArgs();
-};
-const checkArgs = () => {
-  if (args && args.debug) {
-    process.env.LOGLEVEL = "verbose";
-  } else {
-    process.env.LOGLEVEL = "info";
-  }
-  log.level = process.env.LOGLEVEL;
-};
+
 /** 检查环境变量 默认在当前目录下面新建一个.env 然后可以通过dotenv读取 */
 const checkEnv = () => {
   const dotenvPath = path.resolve(userHome, ".env");
   if (pathExits(dotenvPath)) {
-    config = dotenv.config({
+    dotenv.config({
       path: path.resolve(userHome, ".env"), //改成从用户主目录下面的.env读取
     });
-  } else {
-    config = createDefaultConfig();
   }
-
-  log.verbose("环境变量", process.env.CLI_HOME_PATH);
+  createDefaultConfig();
 };
 const createDefaultConfig = () => {
   const cliConfig = {
     home: userHome,
   };
-  if (process.env.CLI_HOME) {
+  if (process.env.CLI_HOME_PATH) {
     cliConfig["cliHome"] = path.join(userHome, process.env.CLI_HOME_PATH);
   } else {
     cliConfig["cliHome"] = path.join(userHome, constant.DEFAULT_CLI_HOME);
@@ -103,6 +94,7 @@ const checkGlobalUpdate = async () => {
   const currentVersion = pkg.version;
   const name = pkg.name;
   const lastVersion = await getNpmSemverVersion(currentVersion, name);
+
   if (lastVersion && semver.gt(lastVersion, currentVersion)) {
     log.warn(
       colors.yellow(`请手动更新 ${npmName}，当前版本：${currentVersion}，最新版本：${lastVersion}
@@ -116,6 +108,7 @@ const registerCommand = () => {
     .usage("<command> [options]")
     .name(Object.keys(pkg.bin)[0])
     .option("-d --debug", "是否开启调试模式", false)
+    .option("-tp --targetPath <targetPath>", "是否指定本地调试路径")
     .version(pkg.version);
 
   /** 定制debug模式 */
@@ -135,9 +128,13 @@ const registerCommand = () => {
       console.log(colors.red("可用的命令:" + avaliableCommands.join(",")));
     }
   });
+  /** 指定全局的targetPath */
+  program.on("option:targetPath", () => {
+    process.env.CLI_TARGET_PATH = program.targetPath;
+  });
   /** 1.init命令 */
   const command = program.command("init [projectName]");
-  command.option("-f --force", "是否强制初始化", false).action(init);
+  command.option("-f --force", "是否强制初始化", false).action(exec);
 
   program.parse(process.argv);
   /** 不输入命令的时候打印帮助文档 */

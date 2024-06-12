@@ -2,7 +2,6 @@
   "name": "mac-mw-cli-dev",
   "version": "1.0.0",
   "description": "梦晚的脚手架",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

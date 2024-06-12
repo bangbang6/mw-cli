@@ -20,10 +20,12 @@
     "access": "public"
   },
   "dependencies": {
+    "@mw-cli-dev/exec": "file:../../core/exec",
     "@mw-cli-dev/get-npm-info": "file:../../utils/get-npm-info",
-    "@mw-cli-dev/log": "file:../../utils/log",
     "@mw-cli-dev/init": "file:../../commands/init",
+    "@mw-cli-dev/log": "file:../../utils/log",
     "colors": "^1.4.0",
+    "commander": "^6.2.1",
     "dotenv": "^8.2.0",
     "import-local": "^3.1.0",
     "minimist": "^1.2.5",
@@ -31,8 +33,7 @@
     "path-exists": "^4.0.0",
     "root-check": "^1.0.0",
     "semver": "^7.6.2",
-    "user-home": "^2.0.0",
-    "commander": "^6.2.1"
+    "user-home": "^2.0.0"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
