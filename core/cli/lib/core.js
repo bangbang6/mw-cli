@@ -14,18 +14,21 @@ const pathExits = require("path-exists").sync;
 const minimist = require("minimist");
 const dotenv = require("dotenv");
 const { getNpmSemverVersion } = require("@mw-cli-dev/get-npm-info");
+const commander = require("commander");
+const init = require("@mw-cli-dev/init");
+const program = new commander.Command();
 
 let args, config;
 
 function core() {
   try {
-    checkInputArgs();
     checkPkgVersion();
     checkNodeVersion();
     checkRoot();
     checkUserHome();
     checkEnv();
-    checkGlobalUpdate();
+    // checkGlobalUpdate();
+    registerCommand();
   } catch (e) {
     log.error(e);
   }
@@ -105,5 +108,41 @@ const checkGlobalUpdate = async () => {
       colors.yellow(`请手动更新 ${npmName}，当前版本：${currentVersion}，最新版本：${lastVersion}
                   更新命令： npm install -g ${npmName}`)
     );
+  }
+};
+/** 注册命令 */
+const registerCommand = () => {
+  program
+    .usage("<command> [options]")
+    .name(Object.keys(pkg.bin)[0])
+    .option("-d --debug", "是否开启调试模式", false)
+    .version(pkg.version);
+
+  /** 定制debug模式 */
+  program.on("option:debug", function () {
+    if (program.debug) {
+      process.env.LOGLEVEL = "verbose";
+    } else {
+      process.env.LOGLEVEL = "info";
+    }
+    log.level = process.env.LOGLEVEL;
+  });
+  /** 对未知命令监听 */
+  program.on("command:*", (obj) => {
+    const avaliableCommands = program.commands.map((cmd) => cmd.name());
+    console.log(colors.red("未知的命令" + obj[0]));
+    if (avaliableCommands.length > 0) {
+      console.log(colors.red("可用的命令:" + avaliableCommands.join(",")));
+    }
+  });
+  /** 1.init命令 */
+  const command = program.command("init [projectName]");
+  command.option("-f --force", "是否强制初始化", false).action(init);
+
+  program.parse(process.argv);
+  /** 不输入命令的时候打印帮助文档 */
+  if (program.args && program.args.length < 1) {
+    program.outputHelp();
+    console.log();
   }
 };

@@ -22,6 +22,7 @@
   "dependencies": {
     "@mw-cli-dev/get-npm-info": "file:../../utils/get-npm-info",
     "@mw-cli-dev/log": "file:../../utils/log",
+    "@mw-cli-dev/init": "file:../../commands/init",
     "colors": "^1.4.0",
     "dotenv": "^8.2.0",
     "import-local": "^3.1.0",
@@ -30,7 +31,8 @@
     "path-exists": "^4.0.0",
     "root-check": "^1.0.0",
     "semver": "^7.6.2",
-    "user-home": "^2.0.0"
+    "user-home": "^2.0.0",
+    "commander": "^6.2.1"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
