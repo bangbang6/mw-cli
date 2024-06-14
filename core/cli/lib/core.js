@@ -6,7 +6,6 @@ const path = require("path");
 const pkg = require("../package.json");
 const log = require("@mw-cli-dev/log");
 const constant = require("./const");
-const semver = require("semver");
 const colors = require("colors/safe");
 const rootCheck = require("root-check");
 const userHome = require("user-home");
@@ -17,6 +16,7 @@ const commander = require("commander");
 const init = require("@mw-cli-dev/init");
 const program = new commander.Command();
 const exec = require("@mw-cli-dev/exec");
+const semver = require("semver");
 
 let args, config;
 
@@ -33,7 +33,6 @@ async function core() {
 }
 const prepare = async () => {
   checkPkgVersion();
-  checkNodeVersion();
   checkRoot();
   checkUserHome();
   checkEnv();
@@ -43,16 +42,7 @@ const prepare = async () => {
 const checkPkgVersion = () => {
   log.notice("cli", pkg.version);
 };
-/** 检查node版本号 */
-const checkNodeVersion = () => {
-  const currentVersion = process.version;
-  const lowNodeVersion = constant.LOWEAST_NODE_VERSION;
-  if (!semver.gte(currentVersion, lowNodeVersion)) {
-    throw new Error(
-      colors.red(`mw-cli需要安装v${lowNodeVersion}以上版本的Node.js`)
-    );
-  }
-};
+
 /** 检查root启动 */
 const checkRoot = () => {
   /** root的登录者需要降级 因为这个脚手架需要创建很多文件 不然它创建的文件后面换个登录者都访问不了 */

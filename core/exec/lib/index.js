@@ -7,9 +7,17 @@ const Package = require("@mac-mw-cli-dev/package");
 const log = require("@mac-mw-cli-dev/log");
 const path = require("path");
 const CACHE_DIR = "dependencies";
+const cp = require("child_process");
 
 const SETTINGS = {
   init: "@mac-mw-cli-dev/init", // important 这里可以根据不同的公司用不同的init包 然后不指定targetPath 那么脚手架会把这个包缓存到本地 然后用这个包去执行方法 而且会判断是否有新版本更新
+};
+
+const spawn = (command, args, options) => {
+  const win32 = process.platform === "win32";
+  const cmd = win32 ? "cmd" : command; // windows 下 cmd才是可执行文件
+  const cmdArgs = win32 ? ["/c"].concat(command, args) : args; //// windows 下 /c表示 静莫执行
+  return cp.spawn(cmd, cmdArgs, options || {});
 };
 
 const exec = async (...args) => {
@@ -24,7 +32,7 @@ const exec = async (...args) => {
   const npmPackageName = SETTINGS[cmdName]; //不同公司的init包名字
   const packageVersion = "latest";
   if (!targetPath) {
-    /** 换成缓存目录路径 */
+    /** 换成缓存目录路径 */ /** !!important 没指定targetPath的话 storeDir就是targetPath下面+node_modules  */
     targetPath = path.resolve(homePath, CACHE_DIR);
     storeDir = path.resolve(targetPath, "node_modules");
     log.verbose("targetPath", targetPath);
@@ -51,8 +59,41 @@ const exec = async (...args) => {
   const rootFile = pkg.getRootFilePath();
   if (rootFile) {
     // 当前进程中调用 无法充分利用cpu资源
-    require(rootFile).apply(null, args);
-    // 在node 多进程调用
+    try {
+      const argsTemp = [...args];
+      const command = args[args.length - 1];
+      /** command瘦身 不然属性太多 */
+      const o = Object.create(null);
+      Object.keys(command).forEach((key) => {
+        /** 去除掉原先链上的属性以及内部属性 */
+        if (
+          command.hasOwnProperty(key) &&
+          !key.startsWith("_") &&
+          key !== "parent"
+        ) {
+          o[key] = command[key];
+        }
+      });
+      argsTemp[argsTemp.length - 1] = o;
+
+      const code = `require('${rootFile}').call(null, ${JSON.stringify(
+        argsTemp
+      )})`;
+      const child = spawn("node", ["-e", code], {
+        cwd: process.cwd(),
+        stdio: "inherit",
+      });
+      child.on("err", (err) => {
+        log.err(e.message);
+        process.exit(1);
+      });
+      child.on("exit", (e) => {
+        log.verbose("命令执行成功");
+        process.exit(e);
+      });
+    } catch (e) {
+      log.error(e.message);
+    }
   }
 };
 module.exports = exec;

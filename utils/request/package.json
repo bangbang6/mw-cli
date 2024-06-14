@@ -1,5 +1,5 @@
 {
-  "name": "@mac-mw-cli-dev/init",
+  "name": "@mac-mw-cli-dev/request",
   "version": "1.0.0",
   "description": "> TODO: description",
   "author": "bangbang6 <577174667@qq.com>",
@@ -20,21 +20,13 @@
     "type": "git",
     "url": "git+https://github.com/bangbang6/mw-cli.git"
   },
-  "dependencies": {
-    "@mac-mw-cli-dev/command":"file:../../models/command",
-    "@mac-mw-cli-dev/log":"file:../../utils/log",
-    "@mac-mw-cli-dev/request":"file:../../utils/request",
-    "@mac-mw-cli-dev/package":"file:../../models/package",
-    "@mac-mw-cli-dev/utils":"file:../../utils/utils",
-    "inquirer": "^7.3.3",
-    "fs-extra": "^9.0.1",
-    "semver": "^7.6.2",
-    "user-home": "^2.0.0"
-  },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "bugs": {
     "url": "https://github.com/bangbang6/mw-cli/issues"
+  },
+  "dependencies": {
+    "axios": "^1.7.2"
   }
 }

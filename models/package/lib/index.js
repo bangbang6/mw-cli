@@ -110,7 +110,6 @@ class Package {
       return null;
     };
     if (this.storeDir) {
-      console.log(this.cacheFilePath, "this.cacheFilePath");
       return getRootFile(this.cacheFilePath);
     } else {
       return getRootFile(this.targetPath);
