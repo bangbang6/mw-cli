@@ -5,19 +5,13 @@
 
 const Package = require("@mac-mw-cli-dev/package");
 const log = require("@mac-mw-cli-dev/log");
+const { exec: spawn } = require("@mac-mw-cli-dev/utils");
 const path = require("path");
 const CACHE_DIR = "dependencies";
 const cp = require("child_process");
 
 const SETTINGS = {
   init: "@mac-mw-cli-dev/init", // important 这里可以根据不同的公司用不同的init包 然后不指定targetPath 那么脚手架会把这个包缓存到本地 然后用这个包去执行方法 而且会判断是否有新版本更新
-};
-
-const spawn = (command, args, options) => {
-  const win32 = process.platform === "win32";
-  const cmd = win32 ? "cmd" : command; // windows 下 cmd才是可执行文件
-  const cmdArgs = win32 ? ["/c"].concat(command, args) : args; //// windows 下 /c表示 静莫执行
-  return cp.spawn(cmd, cmdArgs, options || {});
 };
 
 const exec = async (...args) => {

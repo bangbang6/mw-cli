@@ -25,7 +25,6 @@ class Package {
     /** 在命令行指定了init包的路径 */
     this.targetPath = options.targetPath;
     /** 缓存在.mac-mw-cli-dev的init包路径目录 */
-
     this.storeDir = options.storeDir;
     /** npm包的name */
     this.packageName = options.name;
@@ -91,7 +90,10 @@ class Package {
         `已经自动为你安装最新版本的${this.packageName}@${latestPackageVersion}`
       );
       this.packageVersion = latestPackageVersion;
+    } else {
+      this.packageVersion = latestPackageVersion;
     }
+
     return latestFilePath;
   }
   /** 获取包的入口文件 */
