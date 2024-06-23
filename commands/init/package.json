@@ -29,7 +29,10 @@
     "inquirer": "^7.3.3",
     "fs-extra": "^9.0.1",
     "semver": "^7.6.2",
-    "user-home": "^2.0.0"
+    "user-home": "^2.0.0",
+    "kebab-case": "^1.0.0",
+    "ejs": "^3.1.5",
+    "glob": "^7.1.6"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
