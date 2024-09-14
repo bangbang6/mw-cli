@@ -18,8 +18,8 @@ function getNpmInfo(npmName, registry) {
       }
       return null;
     })
-    .catch((err) => {
-      return Promise.reject(err);
+    .catch((err1) => {
+      return Promise.reject(err1);
     });
 }
 const getDefaultRegistry = (isOrigin = false) => {
