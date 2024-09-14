@@ -77,7 +77,7 @@ class InitCommand extends Command {
       log.success("模版安装成功");
     }
     const templateIgnore = this.templateInfo.ignore || [];
-    const ignore = ["node_modules/**", ...templateIgnore];
+    const ignore = ["node_modules/**", "src/assets/**", ...templateIgnore];
     const options = {
       ignore,
       nodir: true,
@@ -421,6 +421,8 @@ class InitCommand extends Command {
             return new Promise((resolve1, reject1) => {
               ejs.renderFile(filePath, this.projectInfo, {}, (err, result) => {
                 if (err) {
+                  console.log("filePath", filePath);
+
                   reject1(err);
                 }
                 fse.writeFileSync(filePath, result);

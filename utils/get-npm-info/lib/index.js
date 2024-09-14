@@ -22,7 +22,7 @@ function getNpmInfo(npmName, registry) {
       return Promise.reject(err);
     });
 }
-const getDefaultRegistry = (isOrigin = true) => {
+const getDefaultRegistry = (isOrigin = false) => {
   return isOrigin
     ? "https://registry.npmjs.org"
     : "https://registry.npmmirror.com/";

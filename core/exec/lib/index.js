@@ -69,7 +69,6 @@ const exec = async (...args) => {
         }
       });
       argsTemp[argsTemp.length - 1] = o;
-
       const code = `require('${rootFile}').call(null, ${JSON.stringify(
         argsTemp
       )})`;
