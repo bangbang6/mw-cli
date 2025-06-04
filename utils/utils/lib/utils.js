@@ -1,5 +1,5 @@
 "use strict";
-
+const fs = require("fs");
 const isObject = (o) => {
   return Object.prototype.toString.call(o) === "[object Object]";
 };
@@ -26,10 +26,37 @@ const execSync = (command, args, options) => {
     p.on("exit", (c) => resolve(c));
   });
 };
+const readFile = (path, options = {}) => {
+  if (fs.existsSync(path)) {
+    const buffer = fs.readFileSync(path);
+    if (buffer) {
+      if (options.toJson) {
+        return buffer.toJSON();
+      } else {
+        return buffer.toString();
+      }
+    }
+  }
+  return null;
+};
+const writeFile = (path, data, { rewrite = true } = {}) => {
+  if (fs.existsSync(path)) {
+    if (rewrite) {
+      fs.writeFileSync(path, data);
+      return true;
+    }
+    return false;
+  } else {
+    fs.writeFileSync(path, data);
+    return true;
+  }
+};
 module.exports = {
   isObject,
   spinnerStart,
   sleep,
   exec,
   execSync,
+  readFile,
+  writeFile,
 };

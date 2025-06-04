@@ -4,9 +4,13 @@ const log = require("@mac-mw-cli-dev/log");
 const path = require("path");
 const fs = require("fs");
 const fse = require("fs-extra");
+const Git = require("@mac-mw-cli-dev/git");
 class PublishCommand extends Command {
   init() {
-    console.log("this._argv,", this._argv);
+    this.options = {
+      refreshServer: this._cmd.refreshServer,
+      refreshToken: this._cmd.refreshToken,
+    };
   }
   exec() {
     try {
@@ -14,6 +18,8 @@ class PublishCommand extends Command {
       // 1.初始化检查
       this.prepare();
       // 2,FLow
+      const git = new Git(this.projectInfo, this.options);
+      git.init();
       // 3. 云构建
       const endTime = new Date().getTime();
       log.info("本次发布耗时", Math.floor((startTime - endTime) / 1000) + "秒");

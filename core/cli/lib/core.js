@@ -127,7 +127,11 @@ const registerCommand = () => {
   command.option("-f --force", "是否强制初始化", false).action(exec);
 
   /** 2.publish命令 */
-  program.command("publish").action(exec);
+  program
+    .command("publish")
+    .option("--refreshServer", "强制更新原程Git仓库")
+    .option("--refreshToken", "强制更新原程Git仓库的token")
+    .action(exec);
 
   program.parse(process.argv);
   /** 不输入命令的时候打印帮助文档 */
