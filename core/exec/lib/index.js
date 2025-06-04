@@ -12,6 +12,7 @@ const cp = require("child_process");
 
 const SETTINGS = {
   init: "@mac-mw-cli-dev/init", // important 这里可以根据不同的公司用不同的init包 然后不指定targetPath 那么脚手架会把这个包缓存到本地 然后用这个包去执行方法 而且会判断是否有新版本更新
+  publish: "@mac-mw-cli-dev/publish",
 };
 
 const exec = async (...args) => {

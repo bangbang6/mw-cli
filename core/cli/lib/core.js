@@ -126,6 +126,9 @@ const registerCommand = () => {
   const command = program.command("init [projectName]");
   command.option("-f --force", "是否强制初始化", false).action(exec);
 
+  /** 2.publish命令 */
+  program.command("publish").action(exec);
+
   program.parse(process.argv);
   /** 不输入命令的时候打印帮助文档 */
   if (program.args && program.args.length < 1) {
