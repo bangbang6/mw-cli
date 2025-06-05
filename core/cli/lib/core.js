@@ -131,6 +131,7 @@ const registerCommand = () => {
     .command("publish")
     .option("--refreshServer", "强制更新原程Git仓库")
     .option("--refreshToken", "强制更新原程Git仓库的token")
+    .option("--refreshOwner", "强制更新原程仓库类型")
     .action(exec);
 
   program.parse(process.argv);

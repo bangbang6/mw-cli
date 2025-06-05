@@ -4,10 +4,10 @@ function error(methodName) {
 class GitServer {
   constructor(type, token) {
     this.type = type;
-    this, (token = token);
+    this.token = token;
   }
-  setToken() {
-    error("setToken");
+  setToken(token) {
+    this.token = token;
   }
   createRepo() {
     error("createRepo");
@@ -18,6 +18,9 @@ class GitServer {
   getRemote() {
     error("getRemote");
   }
+  getRepo(login, name) {
+    error("getReop");
+  }
   getUser() {
     error("getUser");
   }
@@ -27,8 +30,21 @@ class GitServer {
   getTokenHelpUrl() {
     error("getTokenHelpUrl");
   }
-  getSSHKeyUrl() {
-    error("getSSHKeyUrl");
+  getTokenUrl() {
+    error("getTokenUrl");
   }
+  isHttpResponse = (res) => {
+    return res && res.status;
+  };
+  handleResponse = (res) => {
+    if (
+      this.isHttpResponse(res) &&
+      res.status !== 200 &&
+      res.status !== "开始"
+    ) {
+      return null;
+    }
+    return res;
+  };
 }
 module.exports = GitServer;

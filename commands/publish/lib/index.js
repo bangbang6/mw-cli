@@ -10,6 +10,7 @@ class PublishCommand extends Command {
     this.options = {
       refreshServer: this._cmd.refreshServer,
       refreshToken: this._cmd.refreshToken,
+      refreshOwner: this._cmd.refreshOwner,
     };
   }
   exec() {
