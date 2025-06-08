@@ -11,17 +11,24 @@ class PublishCommand extends Command {
       refreshServer: this._cmd.refreshServer,
       refreshToken: this._cmd.refreshToken,
       refreshOwner: this._cmd.refreshOwner,
+      buildCmd: this._cmd.buildCmd,
+      prod: this._cmd.prod,
+      sshUser: this._cmd.sshUser,
+      sshIp: this._cmd.sshIp,
+      sshPath: this._cmd.sshPath,
     };
   }
-  exec() {
+  async exec() {
     try {
       const startTime = new Date().getTime();
       // 1.初始化检查
       this.prepare();
       // 2,FLow
       const git = new Git(this.projectInfo, this.options);
-      git.init();
+      await git.init(); //代码出书画
+      await git.commit(); //代码自动化提交
       // 3. 云构建
+      await git.publish();
       const endTime = new Date().getTime();
       log.info("本次发布耗时", Math.floor((startTime - endTime) / 1000) + "秒");
     } catch (e) {

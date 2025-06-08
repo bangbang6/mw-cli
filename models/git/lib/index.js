@@ -1,7 +1,9 @@
 "use strict";
 const SimpleGit = require("simple-git");
 const userHome = require("user-home");
+const semver = require("semver");
 const utils = require("@mac-mw-cli-dev/utils");
+const CloudBuild = require("@mac-mw-cli-dev/cloudbuild");
 const path = require("path");
 const fse = require("fs-extra");
 const fs = require("fs");
@@ -11,9 +13,11 @@ const { DEFAULT_CLI_HOME } = require("../../../core/cli/lib/const");
 const Github = require("./Github");
 const Gitee = require("./Gitee");
 const { log } = require("console");
+const request = require("@mac-mw-cli-dev/request");
 const GIT_SERVER_FILE = ".git_server";
 const GIT_Token_FILE = ".git_token";
 const GIT_ROOT_DIR = ".git";
+const GIT_PUBLISH_FILE = ".git_publish";
 const GITHUB = "github";
 const GITEE = "gitee";
 const GIT_OWN_FILE = ".git_own";
@@ -21,6 +25,15 @@ const GIT_LOGIN_FILE = ".git_login";
 const REPO_OWNER_USER = "user";
 const REPO_OWNER_ORG = "org";
 const GIT_IGOREE_FILE = ".gitignore";
+const VERSION_RELEASE = "release";
+const VERSION_DEV = "dev";
+const TEMPLATE_TMP_DIR = "oss";
+const GIT_PUBLISH_TYPE = [
+  {
+    name: "OSS",
+    value: "oss",
+  },
+];
 const GITSERVERTYPE = [
   {
     name: "Github",
@@ -44,7 +57,16 @@ const GIT_OWNER_TYPE_ONLY = [
 class Git {
   constructor(
     { name, version, dir },
-    { refreshServer = false, refreshToken = false, refreshOwner = false }
+    {
+      refreshServer = false,
+      refreshToken = false,
+      refreshOwner = false,
+      buildCmd = "npm run build",
+      prod = false,
+      sshUser = "",
+      sshIp = "",
+      sshPath = "",
+    }
   ) {
     this.name = name;
     this.version = version;
@@ -55,11 +77,18 @@ class Git {
     this.refreshServer = refreshServer;
     this.refreshToken = refreshToken;
     this.refreshOwner = refreshOwner;
+    this.buildCmd = buildCmd; //构建命令
     this.user = null;
     this.orgs = null;
     this.owner = null; //远程仓库类型
     this.login = null; //远程仓库登录名
     this.repo = null; //远程仓库信息
+    this.branch = null;
+    this.gitPublish = null;
+    this.prod = prod;
+    this.sshUser = sshUser;
+    this.sshIp = sshIp;
+    this.sshPath = sshPath;
   }
   checkHomePath() {
     if (!this.homePath) {
@@ -229,16 +258,296 @@ class Git {
   async init() {
     await this.prepare();
     if (await this.getReomte()) {
-      return;
+      return true;
     }
-
     await this.initAndAddRemote();
+
     await this.initCommit();
+  }
+  async commit() {
+    // 生成开发分支---当前位于master分支或者其他分支在init阶段合并过master分支
+    await this.getCorrectVersion();
+    // 检查stash区
+    await this.checkStash();
+    // 检查代码冲突
+    await this.checkConflicted();
+    // 检查未提交代码
+    await this.checkNotCommitted();
+    // 切换开发分支
+    await this.checkoutBranch(this.branch);
+    // 合并远程master和开发分支
+    await this.pullRemoteMasterAndBranch();
+    // 推送代码到远程仓库
+    await this.pushRemoteRepo(this.branch);
+  }
+  async publish() {
+    await this.preparePublish();
+    const cloudBuild = new CloudBuild(this, {
+      buildCmd: this.buildCmd,
+      type: this.gitPublish,
+      prod: this.prod,
+    });
+    await cloudBuild.prepare();
+    await cloudBuild.init();
+    const ret = await cloudBuild.build();
+    console.log("ret", ret);
+    if (ret) {
+      await this.uploadTemplate();
+    }
+    if (this.prod && ret) {
+      // 打tag
+      await this.checkTag();
+      // 切到master
+      await this.checkoutBranch("master");
+      // 开发分支合并打omaster
+      await this.mergeBranchMaster();
+      // 将代码推送到远程
+      await this.pushRemoteRepo("master");
+      // 删除本地开发分支
+      await this.deleteLocalBranch();
+      // 删除远程开发分支
+      await this.deleteRemoteBranch();
+    }
+  }
+  async mergeBranchMaster() {
+    console.log(`开始合并代码,${this.branch}->[master]`);
+    await this.git.mergeFromTo(this.branch, "master");
+    console.log(`代码合并成功,${this.branch}->[master]`);
+  }
+  async deleteLocalBranch() {
+    console.log("开始删除本地开发分支" + this.branch);
+    await this.git.deleteLocalBranch(this.branch);
+  }
+  async deleteRemoteBranch() {
+    console.log("开始删除远程开发分支" + this.branch);
+    await this.git.push(["origin", "--delete", this.branch]);
+  }
+  async checkTag() {
+    console.log("获取远程tag列表");
+    const tag = `${VERSION_RELEASE}/${this.version}`;
+    const tagList = await this.getRemoteBranchList(VERSION_RELEASE);
+    console.log("tagList", tagList);
+    if (tagList.includes(this.version)) {
+      console.log("远程分支存在 删除远程分支");
+      await this.git.push(["origin", `:refs/tags/${tag}`]);
+    }
+    const localTagList = await this.git.tags();
+    if (localTagList.all.includes(tag)) {
+      console.log("本地tag存在,正在删除");
+      await this.git, tag(["-d", tag]);
+    }
+    await this.git.addTag(tag);
+    console.log("本地tag创建成功");
+    await this.git.pushTags("origin", tag);
+    console.log("远程tag创建成功");
+  }
+  // history路由需要上传html到服务器
+  async uploadTemplate() {
+    if (this.sshIp && this.sshUser && this.sshPath) {
+      console.log("开始下载模板文件");
+      let ossTemplate = await request({
+        url: "/oss/get",
+        params: {
+          name: this.name,
+          file: "index.html",
+          type: this.prod ? "prod" : "dev",
+        },
+      });
+      if (ossTemplate.code === 0 && ossTemplate.data) {
+        ossTemplate = ossTemplate.data;
+      }
+      let response = await request({
+        url: ossTemplate.url,
+      });
+      if (response) {
+        const ossTempDIr = path.resolve(
+          this.homePath,
+          TEMPLATE_TMP_DIR,
+          `${this.name}@${this.version}`
+        );
+        if (!fs.existsSync(ossTempDIr)) {
+          fse.mkdirpSync(ossTempDIr);
+        } else {
+          fse.emptyDirSync(ossTempDIr);
+        }
+        const templateFilePath = path.resolve(ossTempDIr, "index.html");
+        fse.createFileSync(templateFilePath);
+        fs.writeFileSync(templateFilePath, response);
+        console.log("模板文件下载成功" + templateFilePath);
+        const uploadCmd = `scp -r ${templateFilePath} ${this.sshUser}@${this.sshIp}:${this.sshPath}`;
+        const ret = require("child_process").execSync(uploadCmd);
+        console.log("ret", ret.toString());
+        console.log("模板文件上传成功" + templateFilePath);
+        fse.emptyDirSync(ossTempDIr);
+      }
+    }
+  }
+  async preparePublish() {
+    const pkg = this.getPackageJson();
+    if (this.buildCmd) {
+      const buildCmdArray = this.buildCmd.split(" ");
+      console.log("buildCmdArray", buildCmdArray);
+      if (
+        !(
+          buildCmdArray[0] === "npm" ||
+          buildCmdArray[0] === "cnpm" ||
+          buildCmdArray[0] === "yarn"
+        )
+      ) {
+        throw new Error("Build命令非法");
+      }
+    }
+    const buildCmdArray = this.buildCmd.split(" ");
+
+    const lastCommand = buildCmdArray[buildCmdArray.length - 1];
+    if (!pkg.scripts || !Object.keys(pkg.scripts).includes(lastCommand)) {
+      throw new Error(`${this.buildCmd} 命令不存在`);
+    }
+    console.log("云发布预检查通过");
+    const gitPublishPath = this.createPath(GIT_PUBLISH_FILE);
+    let gitPublish = utils.readFile(gitPublishPath);
+    if (!gitPublish) {
+      gitPublish = (
+        await inquirer.prompt({
+          type: "list",
+          message: "请选择想要上传代码的平台",
+          name: "gitPublish",
+          choices: GIT_PUBLISH_TYPE,
+          default: "oss",
+        })
+      ).gitPublish;
+      utils.writeFile(gitPublishPath, gitPublish);
+      this.gitPublish = gitPublish;
+      console.log("git publish类型写入成功");
+    }
+  }
+  getPackageJson() {
+    const pkgPath = path.resolve(this.dir, "package.json");
+    if (!fs.existsSync(pkgPath)) {
+      throw new Error("package json不存在");
+    }
+    return fse.readJSONSync(pkgPath);
+  }
+  async pullRemoteMasterAndBranch() {
+    console.log("合并master ->" + this.branch);
+    await this.pullRemoteRepo("master");
+    await this.checkConflicted();
+    const remoteBranchList = await this.getRemoteBranchList(VERSION_DEV);
+    if (remoteBranchList.indexOf(this.version) >= 0) {
+      console.log(`合并远程分支[${this.branch}]`);
+      await this.checkConflicted();
+    } else {
+      console.log(`不存在远程分支[${this.branch}]`);
+    }
+  }
+  async checkoutBranch(branch) {
+    const localBranchList = await this.git.branchLocal();
+    if (localBranchList.all.indexOf(branch) >= 0) {
+      await this.git.checkout(branch);
+    } else {
+      await this.git.checkoutLocalBranch(branch);
+    }
+    console.log("分支切换到" + branch);
+  }
+  async checkStash() {
+    const stashList = await this.git.stashList();
+    if (stashList.all.length > 0) {
+      await this.git.stash(["pop"]);
+      console.log("stash pop 成功");
+    }
+  }
+  async getCorrectVersion() {
+    // 获取远程线上分支号 tags
+    // tags规范release/x.y.z dev/x.y.z
+    const remoteBranchList = await this.getRemoteBranchList(VERSION_RELEASE);
+    let releaseVersion = null;
+    if (remoteBranchList && remoteBranchList.length > 0) {
+      releaseVersion = remoteBranchList[0];
+    }
+    const devVersion = this.version;
+    if (!releaseVersion) {
+      this.branch = `${VERSION_DEV}/${devVersion}`;
+    } else if (semver.gt(this.version, releaseVersion)) {
+      console.log("当前本地版本大于线上最新版本");
+      this.branch = `${VERSION_DEV}/${devVersion}`;
+    } else {
+      console.log("当前线上版本大于本地版本");
+      const incType = (
+        await inquirer.prompt({
+          type: "list",
+          message: "请选择版本升级类型",
+          name: "incType",
+          choices: [
+            {
+              name: `小版本(${releaseVersion} -> ${semver.inc(
+                releaseVersion,
+                "patch"
+              )})`,
+              value: "patch",
+            },
+            {
+              name: `中版本(${releaseVersion} -> ${semver.inc(
+                releaseVersion,
+                "minor"
+              )})`,
+              value: "minor",
+            },
+            {
+              name: `大版本(${releaseVersion} -> ${semver.inc(
+                releaseVersion,
+                "major"
+              )})`,
+              value: "major",
+            },
+          ],
+        })
+      ).incType;
+      const incVersion = semver.inc(releaseVersion, incType);
+      this.branch = `${VERSION_DEV}/${incVersion}`;
+      this.version = incVersion;
+    }
+    // 3.将version同步到package.json
+    this.syncVersionToPackageJson();
+  }
+  syncVersionToPackageJson() {
+    const pkg = fse.readJSONSync(`${this.dir}/package.json`);
+    if (pkg && pkg.version !== this.version) {
+      pkg.version = this.version;
+      fse.writeJsonSync(`${this.dir}/package.json`, pkg, { spaces: 2 });
+    }
+  }
+  async getRemoteBranchList(type) {
+    const remoteList = await this.git.listRemote(["--refs"]);
+    let reg;
+    if (type === VERSION_RELEASE) {
+      reg = /.+?refs\/tags\/release\/(\d+\.\d+\.\d+)/g;
+    } else if (type === VERSION_DEV) {
+      reg = /.+?refs\/heads\/dev\/(\d+\.\d+\.\d+)/g;
+    }
+    return remoteList
+      .split("\n")
+      .map((remote) => {
+        const match = reg.exec(remote);
+        reg.lastIndex = 1;
+        if (match && semver.valid(match[1])) {
+          return match[1];
+        }
+      })
+      .filter(Boolean)
+      .sort((a, b) => {
+        if (semver.lte(b, a)) {
+          if (a === b) {
+            return 0;
+          }
+          return -1;
+        }
+        return 1;
+      });
   }
   getReomte() {
     const gitPath = path.resolve(this.dir, GIT_ROOT_DIR);
     this.remote = this.gitServer.getRemote(this.login, this.name);
-    if (fs.existsSync(gitPath)) {
+    if (fs.existsSync(gitPath) && this.remote) {
       return true;
     }
   }
@@ -255,9 +564,20 @@ class Git {
     }
   }
   async checkRemoteMaster() {
-    return (
-      (await this.git.listRemote(["--refs"])).indexOf("refs/heads/master") >= 0
-    );
+    try {
+      const gitBranch = await this.git.listRemote(["--refs"]);
+      if (!gitBranch) {
+        return false;
+      } else {
+        return (
+          (await this.git.listRemote(["--refs"])).indexOf(
+            "refs/heads/master"
+          ) >= 0
+        );
+      }
+    } catch (e) {
+      return false;
+    }
   }
   async pullRemoteRepo(branchName, options) {
     //同步远程branchName代码

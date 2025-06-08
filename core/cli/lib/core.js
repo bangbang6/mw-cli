@@ -132,6 +132,11 @@ const registerCommand = () => {
     .option("--refreshServer", "强制更新原程Git仓库")
     .option("--refreshToken", "强制更新原程Git仓库的token")
     .option("--refreshOwner", "强制更新原程仓库类型")
+    .option("--buildCmd <buildCmd>", "构建命令")
+    .option("--prod", "是否正式发布")
+    .option("--sshUser <sshUser>", "模板服务器用户名")
+    .option("--sshIp <sshIp>", "模板服务器Ip或者域名")
+    .option("--sshPath <sshPath>", "模板服务器上传路径")
     .action(exec);
 
   program.parse(process.argv);
