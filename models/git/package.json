@@ -1,6 +1,6 @@
 {
   "name": "@mac-mw-cli-dev/git",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "> TODO: description",
   "author": "bangbang6 <577174667@qq.com>",
   "homepage": "https://github.com/bangbang6/mw-cli#readme",
@@ -27,9 +27,9 @@
     "url": "https://github.com/bangbang6/mw-cli/issues"
   },
   "dependencies": {
-    "@mac-mw-cli-dev/utils": "file:../../utils/utils",
     "@mac-mw-cli-dev/cloudbuild": "file:../../models/cloudbuild",
     "@mac-mw-cli-dev/request": "file:../../utils/request",
+    "@mac-mw-cli-dev/utils": "file:../../utils/utils",
     "axios": "^1.9.0",
     "fs-extra": "^11.3.0",
     "inquirer": "^7.3.3",

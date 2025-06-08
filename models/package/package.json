@@ -27,10 +27,10 @@
     "@mw-cli-dev/format-path": "file:../../utils/format-path",
     "@mw-cli-dev/get-npm-info": "file:../../utils/get-npm-info",
     "@mw-cli-dev/utils": "file:../../utils/utils",
+    "fs-extra": "^9.0.1",
     "npminstall": "^4.10.0",
     "path-exists": "^4.0.0",
-    "pkg-dir": "^5.0.0",
-    "fs-extra": "^9.0.1"
+    "pkg-dir": "^5.0.0"
   },
   "bugs": {
     "url": "https://github.com/bangbang6/mw-cli/issues"

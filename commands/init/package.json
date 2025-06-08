@@ -21,18 +21,18 @@
     "url": "git+https://github.com/bangbang6/mw-cli.git"
   },
   "dependencies": {
-    "@mac-mw-cli-dev/command":"file:../../models/command",
-    "@mac-mw-cli-dev/log":"file:../../utils/log",
-    "@mac-mw-cli-dev/request":"file:../../utils/request",
-    "@mac-mw-cli-dev/package":"file:../../models/package",
-    "@mac-mw-cli-dev/utils":"file:../../utils/utils",
-    "inquirer": "^7.3.3",
-    "fs-extra": "^9.0.1",
-    "semver": "^7.6.2",
-    "user-home": "^2.0.0",
-    "kebab-case": "^1.0.0",
+    "@mac-mw-cli-dev/command": "file:../../models/command",
+    "@mac-mw-cli-dev/log": "file:../../utils/log",
+    "@mac-mw-cli-dev/package": "file:../../models/package",
+    "@mac-mw-cli-dev/request": "file:../../utils/request",
+    "@mac-mw-cli-dev/utils": "file:../../utils/utils",
     "ejs": "^3.1.5",
-    "glob": "^7.1.6"
+    "fs-extra": "^9.0.1",
+    "glob": "^7.1.6",
+    "inquirer": "^7.3.3",
+    "kebab-case": "^1.0.0",
+    "semver": "^7.6.2",
+    "user-home": "^2.0.0"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"

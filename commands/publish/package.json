@@ -12,8 +12,8 @@
   },
   "dependencies": {
     "@mac-mw-cli-dev/command": "file:../../models/command",
-    "@mac-mw-cli-dev/log": "file:../../utils/log",
     "@mac-mw-cli-dev/git": "file:../../models/git",
+    "@mac-mw-cli-dev/log": "file:../../utils/log",
     "fs-extra": "^11.3.0"
   },
   "files": [

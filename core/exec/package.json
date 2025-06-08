@@ -24,9 +24,9 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "@mac-mw-cli-dev/package":"file:../../models/package",
-    "@mac-mw-cli-dev/log":"file:../../utils/log",
-    "@mac-mw-cli-dev/utils":"file:../../utils/utils"
+    "@mac-mw-cli-dev/log": "file:../../utils/log",
+    "@mac-mw-cli-dev/package": "file:../../models/package",
+    "@mac-mw-cli-dev/utils": "file:../../utils/utils"
   },
   "bugs": {
     "url": "https://github.com/bangbang6/mw-cli/issues"

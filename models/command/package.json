@@ -21,9 +21,9 @@
     "url": "git+https://github.com/bangbang6/mw-cli.git"
   },
   "dependencies": {
-    "semver": "^7.6.2",
-    "colors":"^1.4.0",
-    "@mac-mw-cli-dev/log":"file:../../utils/log"
+    "@mac-mw-cli-dev/log": "file:../../utils/log",
+    "colors": "^1.4.0",
+    "semver": "^7.6.2"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"

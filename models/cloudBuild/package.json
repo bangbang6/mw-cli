@@ -1,6 +1,6 @@
 {
   "name": "@mac-mw-cli-dev/cloudbuild",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "> TODO: description",
   "author": "bangbang6 <577174667@qq.com>",
   "homepage": "https://github.com/bangbang6/mw-cli#readme",
@@ -21,10 +21,10 @@
     "url": "git+https://github.com/bangbang6/mw-cli.git"
   },
   "dependencies": {
-    "lodash": "^4.17.21",
-    "socket.io-client": "^2.0.0",
     "@mac-mw-cli-dev/request": "file:../../utils/request",
-    "inquirer": "^7.3.3"
+    "inquirer": "^7.3.3",
+    "lodash": "^4.17.21",
+    "socket.io-client": "^2.0.0"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
