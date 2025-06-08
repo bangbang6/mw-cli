@@ -18,3 +18,4 @@ mac-mw-cli-dev -h // 查看各种命令
 - 手写 inquirerList,ejs,require 等源码
 - publish 实现 包含所有的 git 自动化操作
 - 云发布和云构建
+- 内容上传 cdn,oss 以及服务器
